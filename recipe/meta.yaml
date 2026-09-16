@@ -1,11 +1,12 @@
-{% set version = "2.6.0" %}
+{% set name = "seccomp" %}
+{% set version = "2.6.1" %}
 
 package:
-  name: seccomp-split
+  name: {{ name }}-split
   version: {{ version }}
 
 source:
-  url: https://github.com/seccomp/libseccomp/releases/download/v{{ version }}/libseccomp-{{ version }}.tar.gz
+  url: https://github.com/{{ name }}/lib{{ name }}/releases/download/v{{ version }}/lib{{ name }}-{{ version }}.tar.gz
   sha256: 83b6085232d1588c379dc9b9cae47bb37407cf262e6e74993c61ba72d2a784dc
   patches:
     - patches/0001-Dynamic-linking-for-Python-package.patch
@@ -23,10 +24,10 @@ requirements:
     - libtool
     - make
   host:
-    - gperf
+    - gperf 3.1
 
 outputs:
-  - name: libseccomp
+  - name: lib{{ name }}
     script: install_lib.sh
     build:
       run_exports:
@@ -43,15 +44,14 @@ outputs:
         - test -f $PREFIX/lib/libseccomp.so
         - test ! -f $PREFIX/lib/libseccomp.a
 
-  - name: seccomp
+  - name: {{ name }}
     script: install_python.sh
     requirements:
       build:
         - {{ compiler('c') }}
         - {{ stdlib("c") }}
-        - cross-python_{{ target_platform }}     # [build_platform != target_platform]
-        - python                                 # [build_platform != target_platform]
-        - cython                                 # [build_platform != target_platform]
+        - python
+        - cython
       host:
         - cython
         - python
@@ -69,8 +69,8 @@ about:
   home: https://github.com/seccomp/libseccomp
   license: LGPL-2.1-only
   license_file: LICENSE
+  license_family: LGPL
   summary: 'libseccomp provides an easy to use, platform independent, interface to the Linux syscall filtering mechanism.'
-
   description: |
     The libseccomp library provides an easy to use, platform independent, 
     interface to the Linux Kernel's syscall filtering mechanism. The 
@@ -79,9 +79,15 @@ about:
     based filtering interface that should be familiar to, and easily 
     adopted by, application developers.
   dev_url: https://github.com/seccomp/libseccomp
+  doc_url: https://github.com/seccomp/libseccomp
 
 extra:
   recipe-maintainers:
     - mbargull
     - sodre
     - h-vetinari
+  skip-lints:
+    - cbc_dep_in_run_missing_from_host
+    - host_section_needs_exact_pinnings
+    # no need to have python tools for pure C library
+    - python_build_tools_in_host
